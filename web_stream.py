@@ -10,6 +10,7 @@ import os
 WIDTH, HEIGHT = 640, 480
 AGENT_FOLDER = "./agents"
 
+os.environ["SDL_VIDEODRIVER"] = "dummy"
 # Initialize Flask and Pygame
 app = Flask(__name__)
 pygame.init()
