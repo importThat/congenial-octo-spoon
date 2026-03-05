@@ -5,7 +5,7 @@ class CircleAgent:
         self.y = height // 2
         self.radius = 50
         self.color = (255, 0, 0)
-        self.speed = 5
+        self.speed = 0
         self.direction = 1
         self.width = width
         self.height = height

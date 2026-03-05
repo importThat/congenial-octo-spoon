@@ -4,7 +4,7 @@ class BlueCircle:
         self.y = height // 3
         self.radius = 30
         self.color = (0, 0, 255)
-        self.speed = 3
+        self.speed = 0
         self.direction = -1
         self.width = width
 
