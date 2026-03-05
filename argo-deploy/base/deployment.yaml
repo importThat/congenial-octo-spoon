@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-container
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: game-container
+  template:
+    metadata:
+      labels:
+        app: game-container
+    spec:
+      containers:
+      - name: game-container
+        image: <YOUR_DOCKER_IMAGE>
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: agents
+          mountPath: /app/agents
+      volumes:
+      - name: agents
+        emptyDir: {}
