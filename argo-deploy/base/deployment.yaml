@@ -17,10 +17,7 @@ spec:
       - name: game-container
         image: ghcr.io/importthat/congenial-octo-spoon/game-container:latest
         ports:
-          - protocol: TCP
-            port: 80       # port you want to access externally
-            targetPort: 8080  # container port
-        type: NodePort     # or LoadBalancer
+        - containerPort: 8080
         volumeMounts:
         - name: agents
           mountPath: /app/agents
