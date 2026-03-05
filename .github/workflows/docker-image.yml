@@ -24,6 +24,11 @@ jobs:
     - name: Set timestamp
       run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
+    - name: Update redeploy timestamp
+      run: |
+        TIMESTAMP=$(date +%s)
+        sed -i "s/redeploy-timestamp:.*/redeploy-timestamp: \"$TIMESTAMP\"/" argo-deploy/base/deployment.yaml
+
     - name: Build image
       run: |
         docker build -t ghcr.io/importthat/congenial-octo-spoon/game-container:$TIMESTAMP .

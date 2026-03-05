@@ -12,10 +12,12 @@ spec:
     metadata:
       labels:
         app: game-container
+      annotations:
+        redeploy-timestamp: "initial"
     spec:
       containers:
       - name: game-container
-        image: ghcr.io/importthat/congenial-octo-spoon/game-container:$TIMESTAMP
+        image: ghcr.io/importthat/congenial-octo-spoon/game-container:latest
         ports:
         - containerPort: 8080
         volumeMounts:
