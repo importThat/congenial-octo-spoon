@@ -20,10 +20,14 @@ jobs:
     - name: Login to GitHub Container Registry
       run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
+
+    - name: Set timestamp
+      run: echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
     - name: Build image
       run: |
-        docker build -t ghcr.io/importthat/congenial-octo-spoon/game-container:$(date +%Y%m%d%H%M%S) .
+        docker build -t ghcr.io/importthat/congenial-octo-spoon/game-container:$TIMESTAMP .
 
     - name: Push image
       run: |
-        docker push ghcr.io/importthat/congenial-octo-spoon/game-container:$(date +%Y%m%d%H%M%S) .
+        docker push ghcr.io/importthat/congenial-octo-spoon/game-container:$TIMESTAMP
