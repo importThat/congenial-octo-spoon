@@ -22,8 +22,8 @@ jobs:
 
     - name: Build image
       run: |
-        docker build -t ghcr.io/${{ github.repository }}/game-container:latest .
+        docker build -t ghcr.io/importthat/congenial-octo-spoon/game-container:latest .
 
     - name: Push image
       run: |
-        docker push ghcr.io/${{ github.repository }}/game-container:latest
+        docker push ghcr.io/importthat/congenial-octo-spoon/game-container:latest
