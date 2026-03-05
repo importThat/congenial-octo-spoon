@@ -3,53 +3,59 @@ import pygame
 import numpy as np
 import cv2
 import time
+import importlib.util
+import os
 
-# Initialize Flask app
-app = Flask(__name__)
-
-# Initialize Pygame surface (offscreen)
+# Settings
 WIDTH, HEIGHT = 640, 480
+AGENT_FOLDER = "./agents"
+
+# Initialize Flask and Pygame
+app = Flask(__name__)
 pygame.init()
 screen = pygame.Surface((WIDTH, HEIGHT))
 
-# Circle state
-circle_x = 50
-circle_y = HEIGHT // 2
-circle_radius = 50
-speed = 5
-direction = 1  # 1 = right, -1 = left
+# Load all agents dynamically
+agents = []
+for file in os.listdir(AGENT_FOLDER):
+    if file.endswith(".py"):
+        filepath = os.path.join(AGENT_FOLDER, file)
+        spec = importlib.util.spec_from_file_location(file[:-3], filepath)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        # Instantiate the first class found in the module
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if isinstance(attr, type):  # check if it is a class
+                agent_instance = attr(WIDTH, HEIGHT)
+                agents.append(agent_instance)
+                break  # only first class per file
 
 @app.route("/video")
 def video_feed():
     def generate():
-        global circle_x, direction
-
         while True:
-            # Move circle
-            circle_x += speed * direction
-            if circle_x + circle_radius >= WIDTH or circle_x - circle_radius <= 0:
-                direction *= -1  # bounce back
+            screen.fill((0, 0, 0))  # clear screen
 
-            # Draw background and circle
-            screen.fill((0, 0, 0))
-            pygame.draw.circle(screen, (255, 0, 0), (circle_x, circle_y), circle_radius)
+            # Update and draw all agents
+            for agent in agents:
+                agent.update()
+                agent.draw(screen)
 
             # Convert pygame surface to OpenCV image
             frame = pygame.surfarray.array3d(screen)
-            frame = np.transpose(frame, (1, 0, 2))  # Pygame surface is (width, height)
+            frame = np.transpose(frame, (1, 0, 2))
             frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
 
             # Encode as JPEG
             _, jpeg = cv2.imencode('.jpg', frame)
             frame_bytes = jpeg.tobytes()
 
-            # Yield frame for MJPEG stream
             yield (b'--frame\r\nContent-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-
-            time.sleep(0.03)  # ~30 FPS
+            time.sleep(0.03)
 
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == "__main__":
-    # Run Flask app on all interfaces
     app.run(host="0.0.0.0", port=8080)
