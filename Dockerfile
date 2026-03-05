@@ -2,8 +2,7 @@ FROM python:3.11-slim
 
 # Install pygame
 RUN apt-get update && apt-get install -y \
-    libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \
-    && pip install -r requirements.txt
+    libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
 
 # Copy and install Python dependencies
 COPY requirements.txt /requirements.txt
