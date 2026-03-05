@@ -1,46 +1,60 @@
-import os
-os.environ["SDL_VIDEODRIVER"] = "dummy"
-
 from flask import Flask, Response
-import pygame
 import numpy as np
 import cv2
 import time
 import importlib.util
+import os
 
 WIDTH, HEIGHT = 640, 480
 AGENT_FOLDER = "./agents"
 
 app = Flask(__name__)
 
-pygame.init()
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-
 agents = []
 
+# Dynamically load agents
+for file in os.listdir(AGENT_FOLDER):
+    if file.endswith(".py"):
+        path = os.path.join(AGENT_FOLDER, file)
+        spec = importlib.util.spec_from_file_location(file[:-3], path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+
+        for attr_name in dir(module):
+            attr = getattr(module, attr_name)
+            if isinstance(attr, type):
+                agents.append(attr(WIDTH, HEIGHT))
+                break
+
+
 @app.route("/video")
-def video_feed():
+def video():
+
     def generate():
         while True:
-            screen.fill((0,0,0))
 
-            pygame.draw.circle(screen,(255,0,0),(320,240),40)
+            # Create blank frame
+            frame = np.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
 
-            frame = pygame.surfarray.array3d(screen)
-            frame = np.transpose(frame,(1,0,2))
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            # Update and draw agents
+            for agent in agents:
+                agent.update()
+                agent.draw(frame)
 
-            _, jpeg = cv2.imencode('.jpg', frame)
+            _, jpeg = cv2.imencode(".jpg", frame)
 
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' +
-                   jpeg.tobytes() +
-                   b'\r\n')
+            yield (
+                b"--frame\r\n"
+                b"Content-Type: image/jpeg\r\n\r\n"
+                + jpeg.tobytes()
+                + b"\r\n"
+            )
 
             time.sleep(0.03)
 
     return Response(generate(),
-        mimetype='multipart/x-mixed-replace; boundary=frame')
+        mimetype="multipart/x-mixed-replace; boundary=frame")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
